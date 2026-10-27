@@ -1,82 +1,163 @@
-// Fungsi untuk menambahkan input field baru
+const inputContainer = document.getElementById("input-container");
+const inputCount = document.getElementById("inputCount");
+const qrCodesContainer = document.getElementById("qr-codes-container");
+const emptyState = document.getElementById("emptyState");
+const formMessage = document.getElementById("formMessage");
+const resultsCaption = document.getElementById("resultsCaption");
+const downloadAllButton = document.getElementById("downloadAllBtn");
+
 document.getElementById("addInputBtn").addEventListener("click", () => {
-    let inputContainer = document.getElementById("input-container");
-    let inputGroup = document.createElement("div");
-    inputGroup.className = "input-group";
-
-    let newInput = document.createElement("input");
-    newInput.type = "text";
-    newInput.name = "input_text";
-    newInput.className = "qr-input";
-    newInput.placeholder = "Enter text or URL";
-    newInput.autocomplete = "off";
-
-    let removeBtn = document.createElement("button");
-    removeBtn.className = "remove-btn";
-    removeBtn.textContent = "Remove";
-    removeBtn.setAttribute("onclick", "removeInput(this)");
-
-    inputGroup.appendChild(newInput);
-    inputGroup.appendChild(removeBtn);
-    inputContainer.appendChild(inputGroup);
+  inputContainer.appendChild(createInputGroup());
+  updateInputRows();
+  inputContainer.lastElementChild.querySelector("input").focus();
 });
 
-// Fungsi untuk menghapus input field
-function removeInput(element) {
-    element.parentElement.remove();
+document.getElementById("generateBtn").addEventListener("click", renderQRCodes);
+
+downloadAllButton.addEventListener("click", () => {
+  const links = qrCodesContainer.querySelectorAll(".download-link");
+  links.forEach((link) => link.click());
+});
+
+inputContainer.addEventListener("input", () => {
+  formMessage.textContent = "";
+});
+
+function createInputGroup() {
+  const group = document.createElement("div");
+  group.className = "input-group";
+
+  const number = document.createElement("span");
+  number.className = "input-number";
+  number.setAttribute("aria-hidden", "true");
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.name = "input_text";
+  input.className = "qr-input";
+  input.placeholder = "Masukkan teks atau tautan...";
+  input.autocomplete = "off";
+
+  const removeButton = document.createElement("button");
+  removeButton.className = "remove-btn";
+  removeButton.type = "button";
+  removeButton.textContent = "×";
+  removeButton.setAttribute("aria-label", "Hapus baris ini");
+  removeButton.title = "Hapus baris";
+  removeButton.addEventListener("click", () => {
+    group.remove();
+    updateInputRows();
+  });
+
+  group.append(number, input, removeButton);
+  return group;
 }
 
-// Fungsi untuk menghasilkan QR Codes
-document.getElementById("generateBtn").addEventListener("click", () => {
-    let inputElements = document.querySelectorAll(".qr-input");
-    let qrCodesContainer = document.getElementById("qr-codes-container");
-    qrCodesContainer.innerHTML = ""; // Menghapus QR Codes yang sudah ada
+function removeInput(button) {
+  if (inputContainer.children.length <= 1) {
+    inputContainer.querySelector("input").value = "";
+    updateInputRows();
+    return;
+  }
 
-    inputElements.forEach((inputElement, index) => {
-        if (inputElement.value.trim() !== "") {
-            let qrDiv = document.createElement("div");
-            qrDiv.className = "qr-code";
-            qrCodesContainer.appendChild(qrDiv);
+  button.closest(".input-group").remove();
+  updateInputRows();
+}
 
-            let qrCode = new QRCode(qrDiv, {
-                text: inputElement.value.trim(),
-                width: 180,
-                height: 180,
-                colorDark: "#000000",
-                colorLight: "#FFFFFF",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+function updateInputRows() {
+  const groups = inputContainer.querySelectorAll(".input-group");
+  inputCount.textContent = `${groups.length} item`;
 
-            // Menambahkan tautan unduh untuk setiap QR Code
-            setTimeout(() => {
-                let qrImage = qrDiv.querySelector("img");
-                let downloadLink = document.createElement("a");
-                downloadLink.className = "download-link";
-                downloadLink.href = qrImage.src;
-                downloadLink.download = `qrcode_${index + 1}.png`;
-                downloadLink.textContent = `Download QR Code ${index + 1}`;
-                qrDiv.appendChild(downloadLink);
-            }, 300);
-        }
+  groups.forEach((group, index) => {
+    const number = String(index + 1).padStart(2, "0");
+    const input = group.querySelector("input");
+    group.querySelector(".input-number").textContent = number;
+    input.setAttribute("aria-label", `Teks atau tautan ${index + 1}`);
+    group.querySelector(".remove-btn").disabled = groups.length === 1;
+  });
+}
+
+function renderQRCodes() {
+  const values = Array.from(inputContainer.querySelectorAll(".qr-input"))
+    .map((input) => input.value.trim())
+    .filter(Boolean);
+
+  if (values.length === 0) {
+    formMessage.textContent = "Masukkan setidaknya satu teks atau tautan.";
+    inputContainer.querySelector("input").focus();
+    return;
+  }
+
+  formMessage.textContent = "";
+  qrCodesContainer.replaceChildren();
+
+  try {
+    values.forEach((value, index) => {
+      qrCodesContainer.appendChild(createQRCodeCard(value, index));
     });
-});
+  } catch (error) {
+    console.error("QR code generation failed:", error);
+    qrCodesContainer.replaceChildren();
+    formMessage.textContent =
+      "QR code tidak dapat dibuat. Coba teks atau tautan yang lebih singkat.";
+    emptyState.hidden = false;
+    downloadAllButton.disabled = true;
+    return;
+  }
 
-// Fungsi untuk mengunduh semua QR Codes sebagai gambar terpisah
-document.getElementById("downloadAllBtn").addEventListener("click", () => {
-    let qrDivs = document.querySelectorAll(".qr-code img");
-    qrDivs.forEach((qrImg, index) => {
-        let link = document.createElement("a");
-        link.href = qrImg.src;
-        link.download = `qrcode_${index + 1}.png`;
-        link.click();
+  emptyState.hidden = true;
+  downloadAllButton.disabled = false;
+  resultsCaption.textContent = `${values.length} QR siap diunduh`;
+}
+
+function createQRCodeCard(value, index) {
+  const card = document.createElement("article");
+  card.className = "qr-code";
+
+  const title = document.createElement("p");
+  title.className = "qr-number";
+  title.textContent = `QR ${String(index + 1).padStart(2, "0")} · ${value}`;
+  title.title = value;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 220;
+  canvas.height = 220;
+  canvas.setAttribute("aria-label", `QR code ${index + 1}`);
+  canvas.setAttribute("role", "img");
+
+  const downloadLink = document.createElement("a");
+  downloadLink.className = "download-link";
+  downloadLink.download = `qrcode_${index + 1}.png`;
+  downloadLink.textContent = "↓ Unduh PNG";
+
+  const source = document.createElement("div");
+  source.style.position = "fixed";
+  source.style.left = "-10000px";
+  source.style.top = "0";
+  document.body.appendChild(source);
+
+  try {
+    const qrCode = new QRCode(source, {
+      text: value,
+      width: canvas.width,
+      height: canvas.height,
+      colorDark: "#111111",
+      colorLight: "#FFFFFF",
+      correctLevel: QRCode.CorrectLevel.H,
     });
-});
-// Menggunakan Tippy.js untuk membuat tooltip pada elemen dengan ID "#About"
-tippy('#About', {
-  arrow: true, // Menampilkan panah pada tooltip
-  content: 'Created By Hans', // Konten teks dari tooltip
-  animation: 'fade', // Animasi yang digunakan untuk menampilkan tooltip
-});
+
+    QRRenderer.draw(qrCode._oQRCode, canvas);
+    downloadLink.href = canvas.toDataURL("image/png");
+  } finally {
+    source.remove();
+  }
+
+  card.append(title, canvas, downloadLink);
+  return card;
+}
+
 function goBack() {
-    window.location.href = "/index.html"; // ganti sesuai tujuan
+  window.location.href = "../index.html";
 }
+
+updateInputRows();

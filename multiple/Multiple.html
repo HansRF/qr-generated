@@ -1,47 +1,118 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multiple QR Code Generator</title>
+    <meta
+      name="description"
+      content="Buat beberapa QR code sekaligus dan pilih bentuk yang kamu suka."
+    />
     <link rel="stylesheet" href="Multiple.css" />
+    <link rel="icon" type="image/png" href="../img/logo.png" />
+    <title>QR Studio</title>
   </head>
   <body>
-    <button class="back-btn" onclick="goBack()">Back</button>
-    <div class="qr-container">
-      <h1 class="qr-heading">Multiple QR Code Generator</h1>
-      <section class="user-input">
-        <div id="input-container">
-          <div class="input-group">
-            <!-- add list 1.... -->
-            <input
-              type="text"
-              name="input_text"
-              class="qr-input"
-              placeholder="Enter text or URL"
-              autocomplete="off"
-            />
-            <button class="remove-btn" onclick="removeInput(this)">
-              Remove
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="../index.html" aria-label="QR Studio, beranda">
+          <span class="brand-mark" aria-hidden="true">QR</span>
+          <span>qr<span class="brand-accent">studio</span></span>
+        </a>
+        <button class="back-btn" type="button" onclick="goBack()">
+          <span aria-hidden="true">↗</span>
+          QR satuan
+        </button>
+      </header>
+
+      <section class="page-intro" aria-labelledby="page-title">
+        <p class="eyebrow"><span class="status-dot"></span> QR generator</p>
+        <h1 id="page-title">Bikin banyak,<br /><span>sekaligus.</span></h1>
+        <p class="intro">
+          Masukkan beberapa teks atau tautan, pilih gaya QR, lalu buat semuanya
+        dalam satu langkah.
+        </p>
+      </section>
+
+      <section class="workspace" aria-label="Pembuat QR massal">
+        <div class="input-panel">
+          <div class="section-heading">
+            <div>
+              <h2>Daftar konten</h2>
+              <p>Satu baris untuk setiap QR code</p>
+            </div>
+            <span class="count-badge" id="inputCount">1 item</span>
+          </div>
+
+          <div id="input-container" class="input-container">
+            <div class="input-group">
+              <span class="input-number" aria-hidden="true">01</span>
+              <input
+                type="text"
+                name="input_text"
+                class="qr-input"
+                placeholder="Masukkan teks atau tautan..."
+                autocomplete="off"
+                aria-label="Teks atau tautan pertama"
+              />
+              <button
+                class="remove-btn"
+                type="button"
+                onclick="removeInput(this)"
+                aria-label="Hapus baris ini"
+                title="Hapus baris"
+              >×</button>
+            </div>
+          </div>
+
+          <button id="addInputBtn" class="add-input-btn" type="button">
+            <span aria-hidden="true">＋</span> Tambah baris
+          </button>
+
+          <div class="button-group">
+            <button id="generateBtn" class="qr-button primary-button" type="button">
+              Buat semua QR <span aria-hidden="true">↗</span>
+            </button>
+            <button id="downloadAllBtn" class="qr-button secondary-button" type="button" disabled>
+              <span aria-hidden="true">↓</span> Unduh semua
             </button>
           </div>
+          <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+          <p class="privacy-note">
+            <span aria-hidden="true">✦</span> Dibuat langsung di browser kamu
+          </p>
         </div>
-        <div class="button-group">
-          <button id="addInputBtn" class="qr-button">Add Another Input</button>
-          <button id="generateBtn" class="qr-button">Generate QR Codes</button>
-          <button id="downloadAllBtn" class="qr-button">
-            Download All QR Codes
-          </button>
-        </div>
-      </section>
-      <div id="qr-codes-container" class="qr-codes-container"></div>
-    </div>
-    <button id="About"><img src="/img/avatar.png" alt="" /></button>
 
-        <footer class="watermark">
-      © 2026 · QR Code Generator by Raihan
-    </footer>
+        <section class="results-panel" aria-labelledby="results-title">
+          <div class="section-heading results-heading">
+            <div>
+              <h2 id="results-title">Hasil QR</h2>
+              <p id="resultsCaption">Pratinjau QR kamu akan muncul di sini</p>
+            </div>
+            <span class="preview-live"><i></i> LIVE</span>
+          </div>
+          <div id="emptyState" class="empty-state">
+            <div class="placeholder-icon" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <p>Belum ada QR code</p>
+            <span>Tambahkan konten, lalu pilih “Buat semua QR”</span>
+          </div>
+          <div id="qr-codes-container" class="qr-codes-container"></div>
+        </section>
+      </section>
+
+      <footer class="watermark">
+        <span>© 2026 QR Studio</span>
+        <span class="footer-divider">·</span>
+        <span>Dibuat dengan simpel.</span>
+      </footer>
+    </main>
+
+    <button id="About" type="button" aria-label="Tentang pembuat">
+      <img src="../img/avatar.png" alt="" />
+    </button>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="../qr-renderer.js"></script>
     <script src="Multiple.js"></script>
   </body>
 </html>
