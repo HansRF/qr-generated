@@ -58,13 +58,6 @@ function generate(text) {
   }
 }
 
-if (typeof tippy === "function") {
-  tippy("#About", {
-    arrow: true,
-    content: "Dibuat oleh Hans",
-    animation: "fade",
-  });
-}
 
 function goBack() {
   window.location.href = "multiple/Multiple.html";
